@@ -9,25 +9,10 @@ public class CustomerService
         DateTime dateOfBirth,
         int companyId)
     {
-        if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName))
-        {
-            return false;
-        }
+        if (!CheckCredentials(firstName, lastName, email)) return false;
 
-        if (!email.Contains('@') && !email.Contains('.'))
-        {
-            return false;
-        }
-
-        var now = DateTime.Now;
-        var age = now.Year - dateOfBirth.Year;
-        if (now.Month < dateOfBirth.Month ||
-            now.Month == dateOfBirth.Month && now.Day < dateOfBirth.Day)
-        {
-            age--;
-        }
-
-
+        var age = CalculateAge(dateOfBirth);
+        
         if (age < 21)
         {
             return false;
@@ -45,6 +30,49 @@ public class CustomerService
             LastName = lastName
         };
 
+        CreditCheck(customer, company);
+
+        if (customer.HasCreditLimit && customer.CreditLimit < 500)
+        {
+            return false;
+        }
+
+        var customerRepository = new CustomerRepository();
+        customerRepository.AddCustomer(customer);
+
+        return true;
+    }
+
+
+
+    private bool CheckCredentials(string name, string surname, string email)
+    {
+        if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(surname))
+        {
+            return false;
+        }
+
+        if (!email.Contains('@') && !email.Contains('.'))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    private int CalculateAge(DateTime dateOfBirth)
+    {
+        var now = DateTime.Now;
+        var age = now.Year - dateOfBirth.Year;
+        if (now.Month < dateOfBirth.Month ||
+            now.Month == dateOfBirth.Month && now.Day < dateOfBirth.Day)
+        {
+            age--;
+        }
+        return age;
+    }
+
+    private void CreditCheck(Customer customer, Company company)
+    {
         if (company.Type == "VeryImportantClient")
         {
             // Skip credit check
@@ -77,15 +105,5 @@ public class CustomerService
 
             customer.CreditLimit = creditLimit;
         }
-
-        if (customer.HasCreditLimit && customer.CreditLimit < 500)
-        {
-            return false;
-        }
-
-        var customerRepository = new CustomerRepository();
-        customerRepository.AddCustomer(customer);
-
-        return true;
     }
 }
