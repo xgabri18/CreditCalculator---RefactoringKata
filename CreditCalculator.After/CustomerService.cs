@@ -44,7 +44,7 @@ public class CustomerService
     }
 
 
-
+    // Comment
     private bool CheckCredentials(string name, string surname, string email)
     {
         if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(surname))
